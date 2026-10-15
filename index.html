@@ -54,7 +54,7 @@ function calculateJump(s=state){
  if(to>15)return {unavailable:true,message:'На 20% и 25% можно перейти только последовательно по месяцам.'};
  if(!RATES.includes(from)||!RATES.includes(to)||to<=from)return {unavailable:true,message:'Выберите скидку выше текущей.'};
  const adjacent=RATES.indexOf(to)===RATES.indexOf(from)+1;
- const growth=JUMP_GROWTH[from+':'+to]??(RATES.indexOf(to)-RATES.indexOf(from))*MONTHLY_GROWTH;
+ const growth=JUMP_GROWTH[from+':'+to]??(RATES.indexOf(to)-RATES.indexOf(from)+(from===0?1:0))*MONTHLY_GROWTH;
  if(growth===undefined)return {unavailable:true,message:'Для перехода '+from+'% → '+to+'% прирост пока не задан.'};
  const gross=input*(1+growth),pay=gross*(1-to/100);
  if(!Number.isFinite(gross)||!Number.isFinite(pay))throw Error('Сумма слишком велика.');
@@ -69,7 +69,7 @@ function renderJump(){
  $('jumpTo').disabled=!targets.length;
  if(!targets.length){$('jumpResult').innerHTML='<p class="jump-empty">Скачок доступен только на скидки до <b>15%</b>. На 20% и 25% переходят последовательно по месяцам.</p>';return}
  try{const r=calculateJump();if(r.unavailable){$('jumpResult').innerHTML=`<p class="jump-empty">${esc(r.message)}</p>`;return}
- $('jumpResult').innerHTML=`<div class="jump-answers"><div class="jump-answer"><div class="answer-label">Собрать в админке</div><div class="jump-amount">${money(r.gross)}</div></div><div class="jump-answer"><div class="answer-label">Оплата после скидки ${r.to}%</div><div class="jump-amount client">${money(r.pay)}</div></div><p class="jump-growth">Прирост <strong>${signed(r.growth,percentage)} · ${signed(r.increase)}</strong></p><p class="jump-note">Скачок применяется на ближайшее продление. Для 0% → 15% прирост +35%. Для остальных переходов — по 5% за каждый уровень. Скачки на 20% и 25% недоступны.</p></div>`;
+ $('jumpResult').innerHTML=`<div class="jump-answers"><div class="jump-answer"><div class="answer-label">Собрать в админке</div><div class="jump-amount">${money(r.gross)}</div></div><div class="jump-answer"><div class="answer-label">Оплата после скидки ${r.to}%</div><div class="jump-amount client">${money(r.pay)}</div></div><p class="jump-growth">Прирост <strong>${signed(r.growth,percentage)} · ${signed(r.increase)}</strong></p><p class="jump-note">Скачок применяется на ближайшее продление. По 5% за каждый уровень. При старте с 0% добавляются ещё 5% за первый месяц без скидки. Исключение: 0% → 15% — общий прирост +35%. Скачки на 20% и 25% недоступны.</p></div>`;
  }catch(e){$('jumpResult').innerHTML=`<p class="jump-empty">${esc(e.message)}</p>`}
 }
 
